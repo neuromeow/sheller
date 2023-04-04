@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::fs::OpenOptions;
-use std::io::{BufRead, BufReader, BufWriter};
+use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::os::unix::fs::OpenOptionsExt;
 
 #[allow(dead_code)]
@@ -36,3 +36,13 @@ fn create_script_file_bufwriter() -> Result<BufWriter<File>, Box<dyn Error>> {
     let script_file_bufwriter = BufWriter::new(script_file_options);
     Ok(script_file_bufwriter)
 }
+
+#[allow(dead_code)]
+fn update_script_content(body: String, file_bufwriter: &mut BufWriter<File>) -> Result<(), Box<dyn Error>> {
+    let script_header = String::from("#!/bin/bash\n") + "#\n" + "# Script Description\n\n";
+    let script_body =  body + "\n";
+    file_bufwriter.write_all(script_header.as_bytes())?;
+    file_bufwriter.write_all(script_body.as_bytes())?;
+    Ok(())
+}
+
