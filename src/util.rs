@@ -34,11 +34,10 @@ fn create_script_file_bufwriter() -> Result<BufWriter<File>, Box<dyn Error>> {
     Ok(script_file_bufwriter)
 }
 
-fn update_script_content(body: String, file_bufwriter: &mut BufWriter<File>) -> Result<(), Box<dyn Error>> {
+fn update_script_file_bufreader(body: String, file_bufwriter: &mut BufWriter<File>) -> Result<(), Box<dyn Error>> {
     let script_header = String::from("#!/bin/bash\n") + "#\n" + "# Script Description\n\n";
-    let script_body =  body + "\n";
-    file_bufwriter.write_all(script_header.as_bytes())?;
-    file_bufwriter.write_all(script_body.as_bytes())?;
+    let script_content = script_header + &body + "\n";
+    file_bufwriter.write_all(script_content.as_bytes())?;
     Ok(())
 }
 
@@ -50,7 +49,7 @@ pub fn build_script(line_number: u32, history_file_path: &str) -> Result<(), Box
     match find_line_in_file_bufreader(line_number, history_file_bufreader) {
         Some(command) => {
             let mut result_script_bufwriter = create_script_file_bufwriter()?;
-            update_script_content(command, &mut result_script_bufwriter)?;
+            update_script_file_bufreader(command, &mut result_script_bufwriter)?;
             println!("Your script has been created!");
         },
         _ => {
