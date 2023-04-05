@@ -1,10 +1,11 @@
 use std::error::Error;
+use std::ffi::OsString;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::os::unix::fs::OpenOptionsExt;
 
-fn create_file_bufreader(file_path: &str) -> Result<BufReader<File>, Box<dyn Error>> {
+fn create_file_bufreader(file_path: &OsString) -> Result<BufReader<File>, Box<dyn Error>> {
     let file = File::open(file_path)?;
     let file_bufreader = BufReader::new(file);
     Ok(file_bufreader)
@@ -41,19 +42,19 @@ fn update_script_file_bufreader(body: String, file_bufwriter: &mut BufWriter<Fil
     Ok(())
 }
 
-pub fn build_script(line_number: u32, history_file_path: &str) -> Result<(), Box<dyn Error>> {
+pub fn build_script_file(line_number: u32, history_file_path: &OsString) -> Result<(), Box<dyn Error>> {
     let history_file_bufreader = create_file_bufreader(history_file_path)?;
     println!("Starting the script build process...");
-    println!("The history file you passed: {}", history_file_path);
+    println!("The history file you passed: {:?}", history_file_path);
     println!("The line number you passed: {}", line_number);
     match find_line_in_file_bufreader(line_number, history_file_bufreader) {
         Some(command) => {
-            let mut result_script_bufwriter = create_script_file_bufwriter()?;
-            update_script_file_bufreader(command, &mut result_script_bufwriter)?;
+            let mut script_file_bufwriter = create_script_file_bufwriter()?;
+            update_script_file_bufreader(command, &mut script_file_bufwriter)?;
             println!("Your script has been created!");
         },
         _ => {
-            println!("The specified history file does not contain a command with the given number.");
+            println!("The specified history file doesn't contain a command with the given number.");
             std::process::exit(1);
         },
     }
