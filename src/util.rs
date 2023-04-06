@@ -1,10 +1,11 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::ffi::OsString;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::os::unix::fs::OpenOptionsExt;
 use std::ops::Range;
+use std::os::unix::fs::OpenOptionsExt;
 
 fn create_file_bufreader(file_path: &OsString) -> Result<BufReader<File>, Box<dyn Error>> {
     let file = File::open(file_path)?;
@@ -47,6 +48,17 @@ fn update_script_file_bufreader(
     let script_content = script_header + &body + "\n";
     file_bufwriter.write_all(script_content.as_bytes())?;
     Ok(())
+}
+
+#[allow(dead_code)]
+fn create_hashmap_from_ranges_vector(ranges_vector: &Vec<Range<u32>>) -> HashMap<u32, Option<String>> {
+    let mut result = HashMap::new();
+    for range in ranges_vector {
+        for number in range.clone() {
+            result.insert(number, None);
+        }
+    }
+    result
 }
 
 #[allow(dead_code)]
