@@ -48,14 +48,12 @@ fn update_script_file_bufreader(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn build_script_file(
     line_number: u32,
     history_file_path: &OsString,
 ) -> Result<(), Box<dyn Error>> {
     let history_file_bufreader = create_file_bufreader(history_file_path)?;
-    println!("Starting the script build process...");
-    println!("The history file you passed: {:?}", history_file_path);
-    println!("The line number you passed: {}", line_number);
     match find_line_in_file_bufreader(line_number, history_file_bufreader) {
         Some(command) => {
             let mut script_file_bufwriter = create_script_file_bufwriter()?;
@@ -67,5 +65,15 @@ pub fn build_script_file(
             std::process::exit(1);
         }
     }
+    Ok(())
+}
+
+pub fn print_passed_parameters(
+    line_number: u32,
+    history_file_path: &OsString,
+) -> Result<(), Box<dyn Error>> {
+    println!("Starting the script build process...");
+    println!("The history file you passed: {:?}", history_file_path);
+    println!("The line number you passed: {}", line_number);
     Ok(())
 }
