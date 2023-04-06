@@ -15,11 +15,11 @@ pub enum Commands {
     Build {
         history_file: OsString,
         #[arg(short, long, required = true)]
-        line: u32,
+        #[arg(value_parser = parse_passed_lines, use_value_delimiter = true, value_delimiter = ',')]
+        lines: Vec<Range<u32>>,
     },
 }
 
-#[allow(dead_code)]
 fn parse_passed_lines(line_number_or_range: &str) -> Result<Range<u32>, std::num::ParseIntError> {
     let mut line_number_or_range_split = line_number_or_range.split("..");
     let line_range_start = line_number_or_range_split.next().unwrap();

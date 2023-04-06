@@ -4,6 +4,7 @@ use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::os::unix::fs::OpenOptionsExt;
+use std::ops::Range;
 
 fn create_file_bufreader(file_path: &OsString) -> Result<BufReader<File>, Box<dyn Error>> {
     let file = File::open(file_path)?;
@@ -69,11 +70,11 @@ pub fn build_script_file(
 }
 
 pub fn print_passed_parameters(
-    line_number: u32,
+    line_ranges: &Vec<Range<u32>>,
     history_file_path: &OsString,
 ) -> Result<(), Box<dyn Error>> {
     println!("Starting the script build process...");
     println!("The history file you passed: {:?}", history_file_path);
-    println!("The line number you passed: {}", line_number);
+    println!("The line ranges you passed: {:?}", line_ranges);
     Ok(())
 }
