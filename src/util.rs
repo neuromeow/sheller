@@ -75,6 +75,24 @@ fn create_hashmap_from_ranges_vector(ranges_vector: &Vec<Range<u32>>) -> HashMap
 }
 
 #[allow(dead_code)]
+fn update_script_file_bufreader_by_lines_hashmap(
+    ranges_vector: &Vec<Range<u32>>,
+    lines_hashmap: HashMap<u32, Option<String>>,
+    file_bufwriter: &mut BufWriter<File>,
+) -> Result<(), Box<dyn Error>> {
+    let script_header = String::from("#!/bin/bash\n") + "#\n" + "# Script Description\n\n";
+    file_bufwriter.write_all(script_header.as_bytes())?;
+    for range in ranges_vector {
+        for number in range.clone() {
+            let command = lines_hashmap.get(&number).clone().unwrap();
+            let command = command.clone().unwrap() + "\n";
+            file_bufwriter.write_all(command.as_bytes())?;
+        }
+    }
+    Ok(())
+}
+
+#[allow(dead_code)]
 pub fn build_script_file(
     line_number: u32,
     history_file_path: &OsString,
