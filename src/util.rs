@@ -29,7 +29,6 @@ fn find_line_in_file_bufreader(
     found_line
 }
 
-#[allow(dead_code)]
 fn update_lines_hashmap_by_file_bufreader_content(
     lines_hashmap: &mut HashMap<u32, Option<String>>,
     file_bufreader: BufReader<File>,
@@ -74,7 +73,6 @@ fn create_hashmap_from_ranges_vector(ranges_vector: &Vec<Range<u32>>) -> HashMap
     result
 }
 
-#[allow(dead_code)]
 fn update_script_file_bufreader_by_lines_hashmap(
     ranges_vector: &Vec<Range<u32>>,
     lines_hashmap: HashMap<u32, Option<String>>,
@@ -107,6 +105,28 @@ pub fn build_script_file(
         _ => {
             println!("The specified history file doesn't contain a command with the given number.");
             std::process::exit(1);
+        }
+    }
+    Ok(())
+}
+
+pub fn build_script_file_with_multiple_line_ranges(
+    line_ranges: &Vec<Range<u32>>,
+    history_file_path: &OsString,
+) -> Result<(), Box<dyn Error>> {
+    let history_file_bufreader = create_file_bufreader(history_file_path)?;
+    let mut lines_hashmap = create_hashmap_from_ranges_vector(line_ranges);
+    println!("{:?}", lines_hashmap);
+    update_lines_hashmap_by_file_bufreader_content(&mut lines_hashmap, history_file_bufreader);
+    println!("{:?}", lines_hashmap);
+    match lines_hashmap.values().any(|line_content| line_content.is_none()) {
+        true => {
+            println!("The specified history file doesn't contain a command with the given number.");
+            std::process::exit(1);
+        }
+        _ => {
+            let mut script_file_bufwriter = create_script_file_bufwriter()?;
+            update_script_file_bufreader_by_lines_hashmap(line_ranges, lines_hashmap, &mut script_file_bufwriter)?
         }
     }
     Ok(())
