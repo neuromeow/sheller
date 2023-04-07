@@ -29,6 +29,19 @@ fn find_line_in_file_bufreader(
     found_line
 }
 
+#[allow(dead_code)]
+fn update_lines_hashmap_by_file_bufreader_content(
+    lines_hashmap: &mut HashMap<u32, Option<String>>,
+    file_bufreader: BufReader<File>,
+) {
+    for (line_index, line_content) in file_bufreader.lines().enumerate() {
+        let line_number = (line_index + 1) as u32;
+        if lines_hashmap.contains_key(&line_number) {
+            lines_hashmap.insert(line_number, Some(line_content.unwrap()));
+        }
+    }
+}
+
 fn create_script_file_bufwriter() -> Result<BufWriter<File>, Box<dyn Error>> {
     let script_file_name = "script_by_sheller.sh";
     let script_file_options = OpenOptions::new()
