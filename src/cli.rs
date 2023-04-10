@@ -21,10 +21,15 @@ pub enum Commands {
 }
 
 fn parse_passed_lines(line_number_or_range: &str) -> Result<Range<u32>, std::num::ParseIntError> {
-    let mut line_number_or_range_split = line_number_or_range.split("..");
-    let line_range_start = line_number_or_range_split.next().unwrap();
-    let line_range_start_parsed = line_range_start.parse::<u32>()?;
-    let line_range_end = line_number_or_range_split.last().unwrap_or(line_range_start);
-    let line_range_end_parsed = line_range_end.parse::<u32>()?;
-    Ok(line_range_start_parsed..line_range_end_parsed)
+    if line_number_or_range.contains("..") {
+        let mut line_number_or_range_split = line_number_or_range.split("..");
+        let line_range_start = line_number_or_range_split.next().unwrap();
+        let line_range_start_parsed = line_range_start.parse::<u32>()?;
+        let line_range_end = line_number_or_range_split.last().unwrap();
+        let line_range_end_parsed = line_range_end.parse::<u32>()?;
+        Ok(line_range_start_parsed..line_range_end_parsed)
+    } else {
+        let line_number_parsed = line_number_or_range.parse::<u32>()?;
+        Ok(line_number_parsed..line_number_parsed + 1)
+    }
 }
