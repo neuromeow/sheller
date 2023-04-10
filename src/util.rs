@@ -46,13 +46,19 @@ fn update_lines_hashmap_by_file_bufreader_content(
     }
 }
 
-fn update_script_file_bufreader_by_lines_hashmap(
-    ranges_vector: &Vec<Range<u32>>,
-    lines_hashmap: HashMap<u32, Option<String>>,
+fn update_script_file_bufwriter_header(
     file_bufwriter: &mut BufWriter<File>,
 ) -> Result<(), Box<dyn Error>> {
     let script_header = String::from("#!/bin/bash\n") + "#\n" + "# Script Description\n\n";
     file_bufwriter.write_all(script_header.as_bytes())?;
+    Ok(())
+}
+
+fn update_script_file_bufwriter_body(
+    ranges_vector: &Vec<Range<u32>>,
+    lines_hashmap: HashMap<u32, Option<String>>,
+    file_bufwriter: &mut BufWriter<File>,
+) -> Result<(), Box<dyn Error>> {
     for range in ranges_vector {
         for number in range.clone() {
             let command = lines_hashmap.get(&number).clone().unwrap();
@@ -79,7 +85,8 @@ pub fn build_script_file_with_multiple_line_ranges(
         }
         _ => {
             let mut script_file_bufwriter = create_script_file_bufwriter()?;
-            update_script_file_bufreader_by_lines_hashmap(line_ranges, lines_hashmap, &mut script_file_bufwriter)?
+            update_script_file_bufwriter_header(&mut script_file_bufwriter)?;
+            update_script_file_bufwriter_body(line_ranges, lines_hashmap, &mut script_file_bufwriter)?;
         }
     }
     Ok(())
