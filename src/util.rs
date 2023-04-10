@@ -54,7 +54,19 @@ fn update_script_file_bufwriter_header(
     Ok(())
 }
 
-fn update_script_file_bufwriter_body(
+#[allow(dead_code)]
+fn update_script_file_bufwriter_body_by_file_bufreader_content(
+    file_bufwriter: &mut BufWriter<File>,
+    file_bufreader: BufReader<File>,
+) -> Result<(), Box<dyn Error>> {
+    for line in file_bufreader.lines() {
+        let line_content = line?;
+        file_bufwriter.write_all(line_content.as_bytes())?;
+    }
+    Ok(())
+}
+
+fn update_script_file_bufwriter_body_by_lines_hashmap(
     ranges_vector: &Vec<Range<u32>>,
     lines_hashmap: HashMap<u32, Option<String>>,
     file_bufwriter: &mut BufWriter<File>,
@@ -86,7 +98,7 @@ pub fn build_script_file_with_multiple_line_ranges(
         _ => {
             let mut script_file_bufwriter = create_script_file_bufwriter()?;
             update_script_file_bufwriter_header(&mut script_file_bufwriter)?;
-            update_script_file_bufwriter_body(line_ranges, lines_hashmap, &mut script_file_bufwriter)?;
+            update_script_file_bufwriter_body_by_lines_hashmap(line_ranges, lines_hashmap, &mut script_file_bufwriter)?;
         }
     }
     Ok(())
