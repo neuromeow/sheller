@@ -11,7 +11,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     match &cli.command {
         Commands::Build { history_file, lines, force } => {
             print_passed_parameters(lines, history_file, force)?;
-            build_script_file_with_multiple_line_ranges(lines, history_file)?;
+            build_script_file_with_multiple_line_ranges(lines, history_file, force)?;
         }
     }
     Ok(())
