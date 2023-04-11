@@ -113,9 +113,11 @@ pub fn build_script_file_with_multiple_line_ranges(
 pub fn print_passed_parameters(
     line_ranges: &Vec<Range<u32>>,
     history_file_path: &OsString,
+    force_option: &bool,
 ) -> Result<(), Box<dyn Error>> {
     println!("Starting the script build process...");
     println!("The history file you passed: {:?}", history_file_path);
     println!("The line ranges you passed: {:?}", line_ranges);
+    println!("Force option: {:?}", force_option);
     Ok(())
 }

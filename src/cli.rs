@@ -14,9 +14,13 @@ pub struct Cli {
 pub enum Commands {
     Build {
         history_file: OsString,
-        #[arg(short, long)]
+
+        #[arg(short, long, group = "specified_lines")]
         #[arg(value_parser = parse_passed_lines, use_value_delimiter = true, value_delimiter = ',')]
         lines: Vec<Range<u32>>,
+
+        #[arg(short, long, requires = "specified_lines")]
+        force: bool,
     },
 }
 
