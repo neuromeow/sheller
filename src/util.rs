@@ -72,9 +72,13 @@ fn update_script_file_bufwriter_body_by_lines_hashmap(
 ) -> Result<(), Box<dyn Error>> {
     for range in ranges_vector {
         for number in range.clone() {
-            let command = lines_hashmap.get(&number).clone().unwrap();
-            let command = command.clone().unwrap() + "\n";
-            file_bufwriter.write_all(command.as_bytes())?;
+            match lines_hashmap.get(&number).unwrap() {
+                Some(line) => {
+                    let command = line.clone() + "\n";
+                    file_bufwriter.write_all(command.as_bytes())?;
+                }
+                _ => continue,
+            }
         }
     }
     Ok(())
@@ -83,6 +87,7 @@ fn update_script_file_bufwriter_body_by_lines_hashmap(
 pub fn build_script_file_with_multiple_line_ranges(
     line_ranges: &Vec<Range<u32>>,
     history_file_path: &OsString,
+    force_option: &bool,
 ) -> Result<(), Box<dyn Error>> {
     let history_file_bufreader = create_file_bufreader(history_file_path)?;
     if line_ranges.is_empty() {
@@ -95,16 +100,18 @@ pub fn build_script_file_with_multiple_line_ranges(
         println!("{:?}", lines_hashmap);
         update_lines_hashmap_by_file_bufreader_content(&mut lines_hashmap, history_file_bufreader);
         println!("{:?}", lines_hashmap);
-        match lines_hashmap.values().any(|line_content| line_content.is_none()) {
-            true => {
-                println!("The specified history file doesn't contain a command with the given number.");
-                std::process::exit(1);
-            }
-            _ => {
+        if lines_hashmap.values().any(|line_content| line_content.is_some()) {
+            if *force_option == true || lines_hashmap.values().all(|line_content| line_content.is_some()) {
                 let mut script_file_bufwriter = create_script_file_bufwriter()?;
                 update_script_file_bufwriter_header(&mut script_file_bufwriter)?;
                 update_script_file_bufwriter_body_by_lines_hashmap(line_ranges, lines_hashmap, &mut script_file_bufwriter)?;
+            } else {
+                println!("The specified history file doesn't contain a command with the given number.");
+                std::process::exit(1);
             }
+        } else {
+            println!("The specified history file doesn't contain any commands with such numbers.");
+            std::process::exit(1);
         }
     }
     Ok(())
@@ -113,9 +120,11 @@ pub fn build_script_file_with_multiple_line_ranges(
 pub fn print_passed_parameters(
     line_ranges: &Vec<Range<u32>>,
     history_file_path: &OsString,
+    force_option: &bool,
 ) -> Result<(), Box<dyn Error>> {
     println!("Starting the script build process...");
     println!("The history file you passed: {:?}", history_file_path);
     println!("The line ranges you passed: {:?}", line_ranges);
+    println!("Force option: {:?}", force_option);
     Ok(())
 }
