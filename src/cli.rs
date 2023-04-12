@@ -26,10 +26,10 @@ pub enum Commands {
 
 fn parse_passed_lines(line_number_or_range: &str) -> Result<Range<u32>, std::num::ParseIntError> {
     if line_number_or_range.contains("..") {
-        let mut line_number_or_range_split = line_number_or_range.split("..");
-        let line_range_start = line_number_or_range_split.next().unwrap();
+        let mut line_range_split = line_number_or_range.split("..");
+        let line_range_start = line_range_split.next().unwrap();
         let line_range_start_parsed = line_range_start.parse::<u32>()?;
-        let line_range_end = line_number_or_range_split.last().unwrap();
+        let line_range_end = line_range_split.last().unwrap();
         let line_range_end_parsed = line_range_end.parse::<u32>()?;
         Ok(line_range_start_parsed..line_range_end_parsed)
     } else {
