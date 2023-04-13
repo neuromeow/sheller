@@ -13,13 +13,18 @@ fn create_file_bufreader(file_path: &OsString) -> Result<BufReader<File>, Box<dy
     Ok(file_bufreader)
 }
 
-fn create_script_file_bufwriter() -> Result<BufWriter<File>, Box<dyn Error>> {
-    let script_file_name = "script_by_sheller.sh";
+fn create_script_file_bufwriter(
+    script_file_path_or_none: &Option<OsString>,
+) -> Result<BufWriter<File>, Box<dyn Error>> {
+    let script_file_path = match script_file_path_or_none {
+        Some(script_file_path) => script_file_path.as_os_str().to_str().unwrap(),
+        _ => "script_by_sheller.sh",
+    };
     let script_file_options = OpenOptions::new()
         .append(true)
         .create_new(true)
         .mode(0o744)
-        .open(script_file_name)?;
+        .open(script_file_path)?;
     let script_file_bufwriter = BufWriter::new(script_file_options);
     Ok(script_file_bufwriter)
 }
@@ -86,13 +91,14 @@ fn update_script_file_bufwriter_body_by_hashmap(
 
 pub fn build_script_file(
     file_path: &OsString,
+    output_file_path_or_none: &Option<OsString>,
     range_vector: &Vec<Range<u32>>,
     flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
     let history_file_bufreader = create_file_bufreader(file_path)?;
     if range_vector.is_empty() {
         println!("No specified lines. All lines from the given file will be used.");
-        let mut script_file_bufwriter = create_script_file_bufwriter()?;
+        let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
         update_script_file_bufwriter_header(&mut script_file_bufwriter)?;
         update_script_file_bufwriter_body_by_file_bufreader(&mut script_file_bufwriter, history_file_bufreader)?;
     } else {
@@ -100,7 +106,7 @@ pub fn build_script_file(
         update_hashmap_by_file_bufreader(&mut lines_hashmap, history_file_bufreader);
         if lines_hashmap.values().any(|v| v.is_some()) {
             if *flag == true || lines_hashmap.values().all(|v| v.is_some()) {
-                let mut script_file_bufwriter = create_script_file_bufwriter()?;
+                let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
                 update_script_file_bufwriter_header(&mut script_file_bufwriter)?;
                 update_script_file_bufwriter_body_by_hashmap(&mut script_file_bufwriter, lines_hashmap, range_vector)?;
             } else {
@@ -117,12 +123,12 @@ pub fn build_script_file(
 
 pub fn print_passed_parameters(
     file_path: &OsString,
-    output_file_path: &Option<OsString>,
+    output_file_path_or_none: &Option<OsString>,
     range_vector: &Vec<Range<u32>>,
     flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
     println!("The history file you passed: {:?}", file_path);
-    println!("Output file: {:?}", output_file_path);
+    println!("Output file: {:?}", output_file_path_or_none);
     println!("The line ranges you passed: {:?}", range_vector);
     println!("Force option: {:?}", flag);
     Ok(())
