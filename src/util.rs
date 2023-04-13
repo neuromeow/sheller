@@ -117,11 +117,13 @@ pub fn build_script_file(
 
 pub fn print_passed_parameters(
     file_path: &OsString,
+    output_file_path: &Option<OsString>,
     range_vector: &Vec<Range<u32>>,
     flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
-    println!("The line ranges you passed: {:?}", range_vector);
     println!("The history file you passed: {:?}", file_path);
+    println!("Output file: {:?}", output_file_path);
+    println!("The line ranges you passed: {:?}", range_vector);
     println!("Force option: {:?}", flag);
     Ok(())
 }
