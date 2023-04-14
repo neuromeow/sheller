@@ -7,24 +7,33 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::ops::Range;
 use std::os::unix::fs::OpenOptionsExt;
 
+use crate::names_generator::get_random_name;
+
 fn create_file_bufreader(file_path: &OsString) -> Result<BufReader<File>, Box<dyn Error>> {
     let file = File::open(file_path)?;
     let file_bufreader = BufReader::new(file);
     Ok(file_bufreader)
 }
 
+fn get_script_file_pathname(script_file_path_or_none: &Option<OsString>) -> String {
+    let mut script_file_pathname = String::new();
+    match script_file_path_or_none {
+        Some(s) => script_file_pathname.push_str(s.to_str().unwrap()),
+        _ => script_file_pathname = get_random_name(),
+    }
+    script_file_pathname.push_str(".sh");
+    script_file_pathname
+}
+
 fn create_script_file_bufwriter(
     script_file_path_or_none: &Option<OsString>,
 ) -> Result<BufWriter<File>, Box<dyn Error>> {
-    let script_file_path = match script_file_path_or_none {
-        Some(script_file_path) => script_file_path.as_os_str().to_str().unwrap(),
-        _ => "script_by_sheller.sh",
-    };
+    let script_file_pathname = get_script_file_pathname(script_file_path_or_none);
     let script_file_options = OpenOptions::new()
         .append(true)
         .create_new(true)
         .mode(0o744)
-        .open(script_file_path)?;
+        .open(script_file_pathname)?;
     let script_file_bufwriter = BufWriter::new(script_file_options);
     Ok(script_file_bufwriter)
 }
