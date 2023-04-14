@@ -16,12 +16,16 @@ fn create_file_bufreader(file_path: &OsString) -> Result<BufReader<File>, Box<dy
 }
 
 fn get_script_file_pathname(script_file_path_or_none: &Option<OsString>) -> String {
-    let mut script_file_pathname = String::new();
-    match script_file_path_or_none {
-        Some(s) => script_file_pathname.push_str(s.to_str().unwrap()),
-        _ => script_file_pathname = get_random_name(),
-    }
-    script_file_pathname.push_str(".sh");
+    let script_file_pathname = match script_file_path_or_none {
+        Some(s) => s.to_str().unwrap().to_string(),
+        // An infinite loop can occur here if scripts with all possible combinations of names already exist
+        _ => loop {
+            let random_basename = get_random_name() + ".sh";
+            if !std::path::Path::new(&random_basename).exists() {
+                break random_basename;
+            }
+        },
+    };
     script_file_pathname
 }
 
