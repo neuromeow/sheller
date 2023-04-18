@@ -1,7 +1,8 @@
 use std::ffi::OsString;
+use std::fmt;
 use std::ops::Range;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[command(version)]
@@ -18,6 +19,9 @@ pub enum Commands {
         #[arg(short, long)]
         output: Option<OsString>,
 
+        #[arg(short, long, value_enum, default_value_t = Interpreter::Bash)]
+        interpreter: Interpreter,
+
         #[arg(short, long, group = "specified_lines")]
         #[arg(value_parser = parse_passed_lines, use_value_delimiter = true, value_delimiter = ',')]
         lines: Vec<Range<u32>>,
@@ -25,6 +29,32 @@ pub enum Commands {
         #[arg(short, long, requires = "specified_lines")]
         force: bool,
     },
+}
+
+#[derive(Clone, Debug, ValueEnum)]
+pub enum Interpreter {
+    // Bourne Shell (sh)
+    Sh,
+    // C Shell (csh)
+    Csh,
+    // TENEX C Shell (tcsh)
+    Tcsh,
+    // KornShell (ksh)
+    Ksh,
+    // Debian Almquist Shell (dash)
+    Dash,
+    // Bourne Again Shell (bash)
+    Bash,
+    // Z Shell (zsh)
+    Zsh,
+    // Friendly Interactive Shell (fish)
+    Fish,
+}
+
+impl fmt::Display for Interpreter {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", format!("{:?}", self).to_lowercase())
+    }
 }
 
 fn parse_passed_lines(line_number_or_range: &str) -> Result<Range<u32>, std::num::ParseIntError> {
