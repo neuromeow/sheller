@@ -67,8 +67,10 @@ fn update_hashmap_by_file_bufreader(
 
 fn update_script_file_bufwriter_header(
     script_file_bufwriter: &mut BufWriter<File>,
+    interpreter: &Interpreter,
 ) -> Result<(), Box<dyn Error>> {
-    let header = String::from("#!/bin/bash\n") + "#\n" + "# Script Description\n\n";
+    let mut header = format!("#!/bin/env {}\n#\n", interpreter);
+    header.push_str("# Script Description\n\n");
     script_file_bufwriter.write_all(header.as_bytes())?;
     Ok(())
 }
@@ -106,6 +108,7 @@ fn update_script_file_bufwriter_body_by_hashmap(
 pub fn build_script_file(
     file_path: &OsString,
     output_file_path_or_none: &Option<OsString>,
+    interpreter: &Interpreter,
     range_vector: &Vec<Range<u32>>,
     flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
@@ -113,7 +116,7 @@ pub fn build_script_file(
     if range_vector.is_empty() {
         println!("No specified lines. All lines from the given file will be used.");
         let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
-        update_script_file_bufwriter_header(&mut script_file_bufwriter)?;
+        update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter)?;
         update_script_file_bufwriter_body_by_file_bufreader(&mut script_file_bufwriter, history_file_bufreader)?;
     } else {
         let mut lines_hashmap = create_hashmap_from_range_vector(range_vector);
@@ -121,7 +124,7 @@ pub fn build_script_file(
         if lines_hashmap.values().any(|v| v.is_some()) {
             if *flag == true || lines_hashmap.values().all(|v| v.is_some()) {
                 let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
-                update_script_file_bufwriter_header(&mut script_file_bufwriter)?;
+                update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter)?;
                 update_script_file_bufwriter_body_by_hashmap(&mut script_file_bufwriter, lines_hashmap, range_vector)?;
             } else {
                 println!("The specified history file doesn't contain a command with the given number.");
