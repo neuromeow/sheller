@@ -9,8 +9,8 @@ use crate::util::print_passed_parameters;
 pub fn run() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match &cli.command {
-        Commands::Build { history_file, output, lines, force } => {
-            print_passed_parameters(history_file, output, lines, force)?;
+        Commands::Build { history_file, output, interpreter, lines, force } => {
+            print_passed_parameters(history_file, output, interpreter, lines, force)?;
             build_script_file(history_file, output, lines, force)?;
         }
     }
