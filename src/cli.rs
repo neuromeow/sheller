@@ -1,4 +1,5 @@
 use std::ffi::OsString;
+use std::fmt;
 use std::ops::Range;
 
 use clap::{Parser, Subcommand, ValueEnum};
@@ -17,7 +18,7 @@ pub enum Commands {
 
         #[arg(short, long)]
         output: Option<OsString>,
-        
+
         #[arg(short, long, value_enum, default_value_t = Interpreter::Bash)]
         interpreter: Interpreter,
 
@@ -48,6 +49,12 @@ pub enum Interpreter {
     Zsh,
     // Friendly Interactive Shell (fish)
     Fish,
+}
+
+impl fmt::Display for Interpreter {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", format!("{:?}", self).to_lowercase())
+    }
 }
 
 fn parse_passed_lines(line_number_or_range: &str) -> Result<Range<u32>, std::num::ParseIntError> {
