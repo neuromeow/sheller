@@ -80,9 +80,14 @@ fn update_script_file_bufwriter_header(
 fn update_script_file_bufwriter_body_by_file_bufreader(
     script_file_bufwriter: &mut BufWriter<File>,
     file_bufreader: BufReader<File>,
+    reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
-    for line in file_bufreader.lines() {
-        let body_line = line.unwrap() + "\n";
+    let mut lines: Vec<_> = file_bufreader.lines().map(|line| line.unwrap()).collect();
+    if *reverse_flag == true {
+        lines.reverse();
+    }
+    for line in lines {
+        let body_line = line + "\n";
         script_file_bufwriter.write_all(body_line.as_bytes())?;
     }
     Ok(())
@@ -114,13 +119,14 @@ pub fn build_script_file(
     description: &String,
     range_vector: &Vec<Range<u32>>,
     flag: &bool,
+    reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
     let history_file_bufreader = create_file_bufreader(file_path)?;
     if range_vector.is_empty() {
         println!("No specified lines. All lines from the given file will be used.");
         let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
         update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter, description)?;
-        update_script_file_bufwriter_body_by_file_bufreader(&mut script_file_bufwriter, history_file_bufreader)?;
+        update_script_file_bufwriter_body_by_file_bufreader(&mut script_file_bufwriter, history_file_bufreader, reverse_flag)?;
     } else {
         let mut lines_hashmap = create_hashmap_from_range_vector(range_vector);
         update_hashmap_by_file_bufreader(&mut lines_hashmap, history_file_bufreader);
