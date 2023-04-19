@@ -97,8 +97,13 @@ fn update_script_file_bufwriter_body_by_hashmap(
     file_bufwriter: &mut BufWriter<File>,
     hashmap: HashMap<u32, Option<String>>,
     range_vector: &Vec<Range<u32>>,
+    reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
-    for range in range_vector {
+    let mut lines_ranges: Vec<&Range<u32>> = range_vector.into_iter().collect();
+    if *reverse_flag == true {
+        lines_ranges.reverse();
+    }
+    for range in lines_ranges {
         for number in range.clone() {
             match hashmap.get(&number).unwrap() {
                 Some(v) => {
@@ -134,7 +139,7 @@ pub fn build_script_file(
             if *flag == true || lines_hashmap.values().all(|v| v.is_some()) {
                 let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
                 update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter, description)?;
-                update_script_file_bufwriter_body_by_hashmap(&mut script_file_bufwriter, lines_hashmap, range_vector)?;
+                update_script_file_bufwriter_body_by_hashmap(&mut script_file_bufwriter, lines_hashmap, range_vector, reverse_flag)?;
             } else {
                 println!("The specified history file doesn't contain a command with the given number.");
                 std::process::exit(1);
