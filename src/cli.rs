@@ -22,6 +22,9 @@ pub enum Commands {
         #[arg(short, long, value_enum, default_value_t = Interpreter::Bash)]
         interpreter: Interpreter,
 
+        #[arg(short, long, default_value_t = String::from("Script Description"))]
+        description: String,
+
         #[arg(short, long, group = "specified_lines")]
         #[arg(value_parser = parse_passed_lines, use_value_delimiter = true, value_delimiter = ',')]
         lines: Vec<Range<u32>>,
