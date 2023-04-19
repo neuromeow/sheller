@@ -147,13 +147,15 @@ pub fn print_passed_parameters(
     interpreter: &Interpreter,
     description: &String,
     range_vector: &Vec<Range<u32>>,
-    flag: &bool,
+    force_flag: &bool,
+    reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
     println!("The history file you passed: {:?}", file_path);
     println!("Output file: {:?}", output_file_path_or_none);
     println!("Interpreter: {}", interpreter);
     println!("Description: {}", description);
     println!("The line ranges you passed: {:?}", range_vector);
-    println!("Force option: {:?}", flag);
+    println!("Force option: {:?}", force_flag);
+    println!("Force option: {:?}", reverse_flag);
     Ok(())
 }

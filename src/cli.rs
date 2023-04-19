@@ -31,6 +31,9 @@ pub enum Commands {
 
         #[arg(short, long, requires = "specified_lines")]
         force: bool,
+
+        #[arg(long)]
+        reverse: bool,
     },
 }
 
