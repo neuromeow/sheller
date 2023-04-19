@@ -80,9 +80,14 @@ fn update_script_file_bufwriter_header(
 fn update_script_file_bufwriter_body_by_file_bufreader(
     script_file_bufwriter: &mut BufWriter<File>,
     file_bufreader: BufReader<File>,
+    reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
-    for line in file_bufreader.lines() {
-        let body_line = line.unwrap() + "\n";
+    let mut lines: Vec<_> = file_bufreader.lines().map(|line| line.unwrap()).collect();
+    if *reverse_flag == true {
+        lines.reverse();
+    }
+    for line in lines {
+        let body_line = line + "\n";
         script_file_bufwriter.write_all(body_line.as_bytes())?;
     }
     Ok(())
@@ -92,8 +97,13 @@ fn update_script_file_bufwriter_body_by_hashmap(
     file_bufwriter: &mut BufWriter<File>,
     hashmap: HashMap<u32, Option<String>>,
     range_vector: &Vec<Range<u32>>,
+    reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
-    for range in range_vector {
+    let mut lines_ranges: Vec<&Range<u32>> = range_vector.into_iter().collect();
+    if *reverse_flag == true {
+        lines_ranges.reverse();
+    }
+    for range in lines_ranges {
         for number in range.clone() {
             match hashmap.get(&number).unwrap() {
                 Some(v) => {
@@ -114,13 +124,14 @@ pub fn build_script_file(
     description: &String,
     range_vector: &Vec<Range<u32>>,
     flag: &bool,
+    reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
     let history_file_bufreader = create_file_bufreader(file_path)?;
     if range_vector.is_empty() {
         println!("No specified lines. All lines from the given file will be used.");
         let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
         update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter, description)?;
-        update_script_file_bufwriter_body_by_file_bufreader(&mut script_file_bufwriter, history_file_bufreader)?;
+        update_script_file_bufwriter_body_by_file_bufreader(&mut script_file_bufwriter, history_file_bufreader, reverse_flag)?;
     } else {
         let mut lines_hashmap = create_hashmap_from_range_vector(range_vector);
         update_hashmap_by_file_bufreader(&mut lines_hashmap, history_file_bufreader);
@@ -128,7 +139,7 @@ pub fn build_script_file(
             if *flag == true || lines_hashmap.values().all(|v| v.is_some()) {
                 let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
                 update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter, description)?;
-                update_script_file_bufwriter_body_by_hashmap(&mut script_file_bufwriter, lines_hashmap, range_vector)?;
+                update_script_file_bufwriter_body_by_hashmap(&mut script_file_bufwriter, lines_hashmap, range_vector, reverse_flag)?;
             } else {
                 println!("The specified history file doesn't contain a command with the given number.");
                 std::process::exit(1);
@@ -147,13 +158,15 @@ pub fn print_passed_parameters(
     interpreter: &Interpreter,
     description: &String,
     range_vector: &Vec<Range<u32>>,
-    flag: &bool,
+    force_flag: &bool,
+    reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
     println!("The history file you passed: {:?}", file_path);
     println!("Output file: {:?}", output_file_path_or_none);
     println!("Interpreter: {}", interpreter);
     println!("Description: {}", description);
     println!("The line ranges you passed: {:?}", range_vector);
-    println!("Force option: {:?}", flag);
+    println!("Force option: {:?}", force_flag);
+    println!("Force option: {:?}", reverse_flag);
     Ok(())
 }
