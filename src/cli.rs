@@ -34,6 +34,9 @@ pub enum Commands {
 
         #[arg(long)]
         reverse: bool,
+
+        #[arg(long, requires = "specified_lines")]
+        reverse_inner: bool,
     },
 }
 
