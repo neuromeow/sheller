@@ -3,16 +3,26 @@ use std::error::Error;
 use std::ffi::OsString;
 use std::fs::File;
 use std::fs::OpenOptions;
-use std::io::{BufRead, BufReader, BufWriter, Write};
+use std::io::{stdin, BufRead, BufReader, BufWriter, Write};
 use std::ops::Range;
 use std::os::unix::fs::OpenOptionsExt;
 
 use crate::cli::Interpreter;
 
-fn read_lines_from_file(file_path: &OsString) -> Result<Vec<String>, Box<dyn Error>> {
-    let file = File::open(file_path)?;
-    let file_bufreader = BufReader::new(file);
-    let lines: Vec<String> = file_bufreader.lines().map(|line| line.unwrap()).collect();
+fn read_lines_from_file_or_stdin(
+    file_path_or_none: &Option<OsString>,
+) -> Result<Vec<String>, Box<dyn Error>> {
+    let lines = match file_path_or_none {
+        Some(file_path) => {
+            let file = File::open(file_path)?;
+            let file_bufreader = BufReader::new(file);
+            file_bufreader.lines().map(|line| line.unwrap()).collect()
+        }
+        None => {
+            let stdin = stdin();
+            stdin.lock().lines().map(|line| line.unwrap()).collect()
+        }
+    };
     Ok(lines)
 }
 
@@ -107,7 +117,7 @@ fn update_script_file_bufwriter_body_by_hashmap(
 }
 
 pub fn build_script_file(
-    file_path: &OsString,
+    file_path: &Option<OsString>,
     output_file_pathname: &OsString,
     interpreter: &Interpreter,
     description: &String,
@@ -116,7 +126,11 @@ pub fn build_script_file(
     reverse_flag: &bool,
     reverse_inner_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
-    let mut history_file_lines = read_lines_from_file(file_path)?;
+    let mut history_file_lines = read_lines_from_file_or_stdin(file_path)?;
+    if history_file_lines.is_empty() {
+        println!("The specified history file (or stdin) contains no content.");
+        std::process::exit(1);
+    }
     if range_vector.is_empty() {
         println!("No specified lines. All lines from the given file will be used.");
         let mut script_file_bufwriter = create_script_file_bufwriter(output_file_pathname)?;
@@ -133,7 +147,7 @@ pub fn build_script_file(
                 update_script_file_bufwriter_body_by_hashmap(&mut script_file_bufwriter, lines_hashmap, range_vector, reverse_flag, reverse_inner_flag)?;
                 println!("{:?}", output_file_pathname);
             } else {
-                println!("The specified history file doesn't contain a command with the given number.");
+                println!("The specified history file (or stdin) doesn't contain a command with the given number.");
                 std::process::exit(1);
             }
         } else {
@@ -145,7 +159,7 @@ pub fn build_script_file(
 }
 
 pub fn print_passed_parameters(
-    file_path: &OsString,
+    file_path: &Option<OsString>,
     output_file_path: &OsString,
     interpreter: &Interpreter,
     description: &String,

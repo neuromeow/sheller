@@ -16,7 +16,7 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     Build {
-        history_file: OsString,
+        history_file: Option<OsString>,
 
         #[arg(short, long, default_value_os_t = get_output_file_name())]
         output: OsString,
