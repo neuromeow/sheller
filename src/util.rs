@@ -8,7 +8,6 @@ use std::ops::Range;
 use std::os::unix::fs::OpenOptionsExt;
 
 use crate::cli::Interpreter;
-use crate::names_generator::get_random_name;
 
 fn create_file_bufreader(file_path: &OsString) -> Result<BufReader<File>, Box<dyn Error>> {
     let file = File::open(file_path)?;
@@ -16,24 +15,9 @@ fn create_file_bufreader(file_path: &OsString) -> Result<BufReader<File>, Box<dy
     Ok(file_bufreader)
 }
 
-fn get_script_file_pathname(script_file_path_or_none: &Option<OsString>) -> String {
-    let script_file_pathname = match script_file_path_or_none {
-        Some(s) => s.to_str().unwrap().to_string(),
-        // An infinite loop can occur here if scripts with all possible combinations of names already exist
-        _ => loop {
-            let random_basename = get_random_name() + ".sh";
-            if !std::path::Path::new(&random_basename).exists() {
-                break random_basename;
-            }
-        },
-    };
-    script_file_pathname
-}
-
 fn create_script_file_bufwriter(
-    script_file_path_or_none: &Option<OsString>,
+    script_file_pathname: &OsString,
 ) -> Result<BufWriter<File>, Box<dyn Error>> {
-    let script_file_pathname = get_script_file_pathname(script_file_path_or_none);
     let script_file_options = OpenOptions::new()
         .append(true)
         .create_new(true)
@@ -124,7 +108,7 @@ fn update_script_file_bufwriter_body_by_hashmap(
 
 pub fn build_script_file(
     file_path: &OsString,
-    output_file_path_or_none: &Option<OsString>,
+    output_file_pathname: &OsString,
     interpreter: &Interpreter,
     description: &String,
     range_vector: &Vec<Range<u32>>,
@@ -135,17 +119,19 @@ pub fn build_script_file(
     let history_file_bufreader = create_file_bufreader(file_path)?;
     if range_vector.is_empty() {
         println!("No specified lines. All lines from the given file will be used.");
-        let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
+        let mut script_file_bufwriter = create_script_file_bufwriter(output_file_pathname)?;
         update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter, description)?;
         update_script_file_bufwriter_body_by_file_bufreader(&mut script_file_bufwriter, history_file_bufreader, reverse_flag)?;
+        println!("{:?}", output_file_pathname);
     } else {
         let mut lines_hashmap = create_hashmap_from_range_vector(range_vector);
         update_hashmap_by_file_bufreader(&mut lines_hashmap, history_file_bufreader);
         if lines_hashmap.values().any(|v| v.is_some()) {
             if *force_flag == true || lines_hashmap.values().all(|v| v.is_some()) {
-                let mut script_file_bufwriter = create_script_file_bufwriter(output_file_path_or_none)?;
+                let mut script_file_bufwriter = create_script_file_bufwriter(output_file_pathname)?;
                 update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter, description)?;
                 update_script_file_bufwriter_body_by_hashmap(&mut script_file_bufwriter, lines_hashmap, range_vector, reverse_flag, reverse_inner_flag)?;
+                println!("{:?}", output_file_pathname);
             } else {
                 println!("The specified history file doesn't contain a command with the given number.");
                 std::process::exit(1);
@@ -160,7 +146,7 @@ pub fn build_script_file(
 
 pub fn print_passed_parameters(
     file_path: &OsString,
-    output_file_path_or_none: &Option<OsString>,
+    output_file_path: &OsString,
     interpreter: &Interpreter,
     description: &String,
     range_vector: &Vec<Range<u32>>,
@@ -169,7 +155,7 @@ pub fn print_passed_parameters(
     reverse_inner_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
     println!("The history file you passed: {:?}", file_path);
-    println!("Output file: {:?}", output_file_path_or_none);
+    println!("Output file: {:?}", output_file_path);
     println!("Interpreter: {}", interpreter);
     println!("Description: {}", description);
     println!("The line ranges you passed: {:?}", range_vector);
