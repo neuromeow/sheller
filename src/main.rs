@@ -1,7 +1,7 @@
 mod cli;
 mod core;
-mod util;
 mod names_generator;
+mod util;
 
 fn main() {
     if let Err(e) = core::run() {
