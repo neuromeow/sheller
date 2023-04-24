@@ -17,7 +17,7 @@ pub enum Commands {
         history_file: Option<OsString>,
 
         #[arg(short, long)]
-        output_file: OsString,
+        output_file: Option<OsString>,
 
         #[arg(short, long, value_enum, default_value_t = Interpreter::Bash)]
         interpreter: Interpreter,

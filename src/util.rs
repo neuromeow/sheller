@@ -26,16 +26,21 @@ fn read_lines_from_file_or_stdin(
     Ok(lines)
 }
 
-fn create_script_file_bufwriter(
-    script_file_pathname: &OsString,
-) -> Result<BufWriter<File>, Box<dyn Error>> {
-    let script_file_options = OpenOptions::new()
-        .append(true)
-        .create_new(true)
-        .mode(0o744)
-        .open(script_file_pathname)?;
-    let script_file_bufwriter = BufWriter::new(script_file_options);
-    Ok(script_file_bufwriter)
+fn create_script_file_box_writer(
+    script_file_pathname_or_none: &Option<OsString>,
+) -> Result<Box<dyn Write>, Box<dyn Error>> {
+    let script_file_writer: Box<dyn Write> = match script_file_pathname_or_none {
+        Some(script_file_pathname) => {
+            let script_file_options = OpenOptions::new()
+                .append(true)
+                .create_new(true)
+                .mode(0o744)
+                .open(script_file_pathname)?;
+            Box::new(BufWriter::new(script_file_options))
+        }
+        None => Box::new(std::io::stdout()),
+    };
+    Ok(script_file_writer)
 }
 
 fn create_hashmap_from_ranges(ranges: &Vec<Range<u32>>) -> HashMap<u32, Option<String>> {
@@ -58,7 +63,7 @@ fn update_hashmap_by_lines(hashmap: &mut HashMap<u32, Option<String>>, lines: Ve
 }
 
 fn update_script_file_bufwriter_header(
-    script_file_bufwriter: &mut BufWriter<File>,
+    script_file_bufwriter: &mut Box<dyn Write>,
     interpreter: &Interpreter,
     description: &String,
 ) -> Result<(), Box<dyn Error>> {
@@ -70,7 +75,7 @@ fn update_script_file_bufwriter_header(
 }
 
 fn update_script_file_bufwriter_body_by_lines(
-    script_file_bufwriter: &mut BufWriter<File>,
+    script_file_bufwriter: &mut Box<dyn Write>,
     lines: &mut Vec<String>,
     reverse_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
@@ -85,7 +90,7 @@ fn update_script_file_bufwriter_body_by_lines(
 }
 
 fn update_script_file_bufwriter_body_by_hashmap(
-    script_file_bufwriter: &mut BufWriter<File>,
+    script_file_bufwriter: &mut Box<dyn Write>,
     hashmap: HashMap<u32, Option<String>>,
     ranges: &Vec<Range<u32>>,
     reverse_flag: &bool,
@@ -115,7 +120,7 @@ fn update_script_file_bufwriter_body_by_hashmap(
 
 pub fn build_script_file(
     file_pathname_or_none: &Option<OsString>,
-    script_file_pathname: &OsString,
+    script_file_pathname_or_none: &Option<OsString>,
     interpreter: &Interpreter,
     description: &String,
     ranges: &Vec<Range<u32>>,
@@ -130,7 +135,8 @@ pub fn build_script_file(
     }
     if ranges.is_empty() {
         println!("No specified line ranges. All lines from the specified file will be used.");
-        let mut script_file_bufwriter = create_script_file_bufwriter(script_file_pathname)?;
+        let mut script_file_bufwriter =
+            create_script_file_box_writer(script_file_pathname_or_none)?;
         update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter, description)?;
         update_script_file_bufwriter_body_by_lines(
             &mut script_file_bufwriter,
@@ -142,7 +148,8 @@ pub fn build_script_file(
         update_hashmap_by_lines(&mut hashmap, lines);
         if hashmap.values().any(|v| v.is_some()) {
             if *force_flag == true || hashmap.values().all(|v| v.is_some()) {
-                let mut script_file_bufwriter = create_script_file_bufwriter(script_file_pathname)?;
+                let mut script_file_bufwriter =
+                    create_script_file_box_writer(script_file_pathname_or_none)?;
                 update_script_file_bufwriter_header(
                     &mut script_file_bufwriter,
                     interpreter,
@@ -169,7 +176,7 @@ pub fn build_script_file(
 
 pub fn print_passed_parameters(
     file_pathname_or_none: &Option<OsString>,
-    script_file_pathname: &OsString,
+    script_file_pathname_or_none: &Option<OsString>,
     interpreter: &Interpreter,
     description: &String,
     ranges: &Vec<Range<u32>>,
@@ -178,12 +185,12 @@ pub fn print_passed_parameters(
     reverse_inner_flag: &bool,
 ) -> Result<(), Box<dyn Error>> {
     println!("History file: {:?}", file_pathname_or_none);
-    println!("Output file: {:?}", script_file_pathname);
+    println!("Output file: {:?}", script_file_pathname_or_none);
     println!("Interpreter: {}", interpreter);
     println!("Description: {}", description);
     println!("Line ranges: {:?}", ranges);
     println!("Force option: {}", force_flag);
     println!("Reverse option: {}", reverse_flag);
-    println!("Reverse inner option: {}", reverse_inner_flag);
+    println!("Reverse inner option: {}\n", reverse_inner_flag);
     Ok(())
 }
