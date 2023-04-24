@@ -7,6 +7,8 @@ use std::io::{stdin, BufRead, BufReader, BufWriter, Write};
 use std::ops::Range;
 use std::os::unix::fs::OpenOptionsExt;
 
+use atty::Stream;
+
 use crate::cli::Interpreter;
 
 fn read_lines_from_file_or_stdin(
@@ -19,8 +21,13 @@ fn read_lines_from_file_or_stdin(
             file_bufreader.lines().map(|line| line.unwrap()).collect()
         }
         None => {
-            let stdin = stdin();
-            stdin.lock().lines().map(|line| line.unwrap()).collect()
+            // Solves the problem of hanging when standard input is not passed
+            if atty::is(Stream::Stdin) {
+                Vec::new()
+            } else {
+                let stdin = stdin();
+                stdin.lock().lines().map(|line| line.unwrap()).collect()
+            }
         }
     };
     Ok(lines)
