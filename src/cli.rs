@@ -4,8 +4,6 @@ use std::ops::Range;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
-use crate::names_generator::get_random_name;
-
 #[derive(Parser)]
 #[command(version)]
 pub struct Cli {
@@ -18,7 +16,7 @@ pub enum Commands {
     Build {
         history_file: Option<OsString>,
 
-        #[arg(short, long, default_value_os_t = get_output_file_name())]
+        #[arg(short, long)]
         output_file: OsString,
 
         #[arg(short, long, value_enum, default_value_t = Interpreter::Bash)]
@@ -65,15 +63,6 @@ pub enum Interpreter {
 impl fmt::Display for Interpreter {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", format!("{:?}", self).to_lowercase())
-    }
-}
-
-fn get_output_file_name() -> OsString {
-    loop {
-        let output_file_name = get_random_name() + ".sh";
-        if !std::path::Path::new(&output_file_name).exists() {
-            break OsString::from(output_file_name);
-        }
     }
 }
 

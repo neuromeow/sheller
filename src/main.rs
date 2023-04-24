@@ -1,6 +1,5 @@
 mod cli;
 mod core;
-mod names_generator;
 mod util;
 
 fn main() {

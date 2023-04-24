@@ -137,7 +137,6 @@ pub fn build_script_file(
             &mut lines,
             reverse_flag,
         )?;
-        println!("{:?}", script_file_pathname);
     } else {
         let mut hashmap = create_hashmap_from_ranges(ranges);
         update_hashmap_by_lines(&mut hashmap, lines);
@@ -156,7 +155,6 @@ pub fn build_script_file(
                     reverse_flag,
                     reverse_inner_flag,
                 )?;
-                println!("{:?}", script_file_pathname);
             } else {
                 println!("The specified file (or standard input) doesn't contain one or more lines with the specified numbers.");
                 // std::process::exit(1);
