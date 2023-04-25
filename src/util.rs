@@ -217,3 +217,113 @@ pub fn print_passed_parameters(
     println!("Reverse inner option: {}\n", reverse_inner_flag);
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::iter::zip;
+
+    fn get_testing_hashmaps() -> [HashMap<u32, Option<String>>; 8] {
+        let testing_hashmaps = [
+            HashMap::new(),
+            HashMap::from([(1, None)]),
+            HashMap::from([(1, None), (2, None)]),
+            HashMap::from([(1, None), (2, None), (5, None), (6, None), (7, None)]),
+            HashMap::from([
+                (1, None),
+                (2, None),
+                (5, None),
+                (6, None),
+                (7, None),
+                (8, None),
+                (9, None),
+                (10, None),
+                (11, None),
+                (12, None),
+            ]),
+            HashMap::from([(2, None)]),
+            HashMap::from([(2, None), (3, None)]),
+            HashMap::from([
+                (2, None),
+                (3, None),
+                (6, None),
+                (7, None),
+                (8, None),
+                (9, None),
+            ]),
+        ];
+        testing_hashmaps
+    }
+
+    #[test]
+    fn create_hashmap_from_ranges_should_create_correctly() {
+        let ranges = [
+            vec![],
+            vec![1..2],
+            vec![1..2, 2..3],
+            vec![1..3, 5..8],
+            vec![1..3, 5..13, 7..9],
+            vec![2..1],
+            vec![2..1, 3..2],
+            vec![3..1, 8..10, 7..5],
+        ];
+        let expected_values = get_testing_hashmaps();
+        for (range, expected_value) in zip(&ranges, expected_values) {
+            let actual_value = create_hashmap_from_ranges(range);
+            assert_eq!(actual_value, expected_value);
+        }
+    }
+
+    #[test]
+    fn update_hashmap_by_lines_should_update_correctly() {
+        let mut hashmaps = get_testing_hashmaps();
+        let lines: Vec<String> = vec!["line 1", "line 2", "line 3", "line 4", "line 5", "line 6"]
+            .into_iter()
+            .map(|line| line.to_string())
+            .collect();
+        let expected_values: [HashMap<u32, Option<String>>; 8] = [
+            HashMap::new(),
+            HashMap::from([(1, Some("line 1".to_string()))]),
+            HashMap::from([
+                (1, Some("line 1".to_string())),
+                (2, Some("line 2".to_string())),
+            ]),
+            HashMap::from([
+                (1, Some("line 1".to_string())),
+                (2, Some("line 2".to_string())),
+                (5, Some("line 5".to_string())),
+                (6, Some("line 6".to_string())),
+                (7, None),
+            ]),
+            HashMap::from([
+                (1, Some("line 1".to_string())),
+                (2, Some("line 2".to_string())),
+                (5, Some("line 5".to_string())),
+                (6, Some("line 6".to_string())),
+                (7, None),
+                (8, None),
+                (9, None),
+                (10, None),
+                (11, None),
+                (12, None),
+            ]),
+            HashMap::from([(2, Some("line 2".to_string()))]),
+            HashMap::from([
+                (2, Some("line 2".to_string())),
+                (3, Some("line 3".to_string())),
+            ]),
+            HashMap::from([
+                (2, Some("line 2".to_string())),
+                (3, Some("line 3".to_string())),
+                (6, Some("line 6".to_string())),
+                (7, None),
+                (8, None),
+                (9, None),
+            ]),
+        ];
+        for (hashmap, expected_value) in zip(&mut hashmaps, &expected_values) {
+            update_hashmap_by_lines(hashmap, lines.clone());
+            assert_eq!(hashmap, expected_value);
+        }
+    }
+}
