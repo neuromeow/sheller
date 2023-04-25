@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::ffi::OsString;
-use std::fs::File;
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use std::io::{stdin, BufRead, BufReader, BufWriter, Write};
 use std::ops::Range;
 use std::os::unix::fs::OpenOptionsExt;
@@ -53,7 +52,12 @@ fn create_script_file_box_writer(
 fn create_hashmap_from_ranges(ranges: &Vec<Range<u32>>) -> HashMap<u32, Option<String>> {
     let mut hashmap = HashMap::new();
     for range in ranges {
-        for number in range.clone() {
+        let cloned_reversed_or_original_range = if range.start > range.end {
+            range.end + 1..range.start + 1
+        } else {
+            range.clone()
+        };
+        for number in cloned_reversed_or_original_range {
             hashmap.insert(number, None);
         }
     }
@@ -108,11 +112,23 @@ fn update_script_file_bufwriter_body_by_hashmap(
         reversed_ranges_or_original.reverse();
     }
     for range in reversed_ranges_or_original {
-        let mut range_elements: Vec<u32> = range.clone().collect();
-        if *reverse_inner_flag == true && range.end - range.start > 1 {
-            range_elements.reverse();
+        let mut cloned_reversed_or_original_range: Vec<u32> = if range.start > range.end {
+            (range.end + 1..range.start + 1).rev().collect()
+        } else {
+            range.clone().collect()
+        };
+        // Boolean conditions for two types of ranges: from lower to higher and from higher to lower.
+        let is_possible_to_reverse = if range.end > range.start {
+            range.end - range.start > 1
+        } else {
+            range.start - range.end > 1
+        };
+        if *reverse_inner_flag == true && is_possible_to_reverse {
+            cloned_reversed_or_original_range.reverse();
         }
-        for number in range_elements.clone() {
+        // If the range contains only one number, then it is no possible to reverse it.
+        // Because the boundaries are already fixed and the hashmap with the lines is already collected.
+        for number in cloned_reversed_or_original_range.clone() {
             match hashmap.get(&number).unwrap() {
                 Some(v) => {
                     let body_line = v.clone() + "\n";
