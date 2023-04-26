@@ -202,6 +202,7 @@ pub fn print_passed_parameters(
     script_file_pathname_or_none: &Option<OsString>,
     interpreter: &Interpreter,
     description: &String,
+    no_header_flag: &bool,
     ranges: &Vec<Range<u32>>,
     force_flag: &bool,
     reverse_flag: &bool,
@@ -211,6 +212,7 @@ pub fn print_passed_parameters(
     println!("Output file: {:?}", script_file_pathname_or_none);
     println!("Interpreter: {}", interpreter);
     println!("Description: {}", description);
+    println!("No header option: {}", no_header_flag);
     println!("Line ranges: {:?}", ranges);
     println!("Force option: {}", force_flag);
     println!("Reverse option: {}", reverse_flag);
