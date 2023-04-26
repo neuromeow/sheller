@@ -19,11 +19,14 @@ pub enum Commands {
         #[arg(short, long)]
         output_file: Option<OsString>,
 
-        #[arg(short, long, value_enum, default_value_t = Interpreter::Bash)]
+        #[arg(short, long, value_enum, default_value_t = Interpreter::Bash, conflicts_with = "no_header")]
         interpreter: Interpreter,
 
-        #[arg(short, long, default_value_t = String::from("Script Description"))]
+        #[arg(short, long, default_value_t = String::from("Script Description"), conflicts_with = "no_header")]
         description: String,
+
+        #[arg(long)]
+        no_header: bool,
 
         #[arg(short, long, group = "specified_lines")]
         #[arg(value_parser = parse_specified_lines, use_value_delimiter = true, value_delimiter = ',')]
