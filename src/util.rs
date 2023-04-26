@@ -146,6 +146,7 @@ pub fn build_script_file(
     script_file_pathname_or_none: &Option<OsString>,
     interpreter: &Interpreter,
     description: &String,
+    no_header_flag: &bool,
     ranges: &Vec<Range<u32>>,
     force_flag: &bool,
     reverse_flag: &bool,
@@ -160,7 +161,13 @@ pub fn build_script_file(
         println!("No specified line ranges. All lines from the specified file will be used.");
         let mut script_file_bufwriter =
             create_script_file_box_writer(script_file_pathname_or_none)?;
-        update_script_file_bufwriter_header(&mut script_file_bufwriter, interpreter, description)?;
+        if *no_header_flag == false {
+            update_script_file_bufwriter_header(
+                &mut script_file_bufwriter,
+                interpreter,
+                description,
+            )?;
+        }
         update_script_file_bufwriter_body_by_lines(
             &mut script_file_bufwriter,
             &mut lines,
@@ -173,11 +180,13 @@ pub fn build_script_file(
             if *force_flag == true || hashmap.values().all(|v| v.is_some()) {
                 let mut script_file_bufwriter =
                     create_script_file_box_writer(script_file_pathname_or_none)?;
-                update_script_file_bufwriter_header(
-                    &mut script_file_bufwriter,
-                    interpreter,
-                    description,
-                )?;
+                if *no_header_flag == false {
+                    update_script_file_bufwriter_header(
+                        &mut script_file_bufwriter,
+                        interpreter,
+                        description,
+                    )?;
+                }
                 update_script_file_bufwriter_body_by_hashmap(
                     &mut script_file_bufwriter,
                     hashmap,

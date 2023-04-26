@@ -36,6 +36,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
                 output_file,
                 interpreter,
                 description,
+                no_header,
                 lines,
                 force,
                 reverse,
